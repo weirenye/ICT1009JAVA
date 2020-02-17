@@ -7,7 +7,7 @@ public class MainApp {
 
 	public static void main(String[] args) throws IOException {
 
-		String text = "Your support team is useless";
+		String text = "I'm screwed";
 		
 		SentimentAnalyzer sentimentAnalyzer = new SentimentAnalyzer();
 		sentimentAnalyzer.initialize();
