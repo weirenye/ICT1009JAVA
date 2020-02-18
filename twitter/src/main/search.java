@@ -1,3 +1,5 @@
+
+
 import java.io.FileOutputStream;
 
 import java.text.DateFormat;
@@ -77,7 +79,7 @@ public class search {
                 OutputStreamWriter osw = new OutputStreamWriter(fos, 
                         StandardCharsets.UTF_8);
                 CSVWriter writer = new CSVWriter(osw);
-                String[] heading = {"Date", "Tweet", "Location", "Link to tweet"};
+                String[] heading = {"Date", "Tweet", "Location", "Retweets", "Link to tweet"};
                 writer.writeNext(heading);
 				//Add resulting entries to the List that we will return
                 
@@ -92,7 +94,7 @@ public class search {
 	            	    String outputDate = outputFormat.format(date);
 	            		String url= "https://twitter.com/" + status.getUser().getScreenName() 
 	            			    + "/status/" + status.getId();
-						String[] line = new String[] {outputDate, cleanText(status.getText()), status.getUser().getLocation(),url};
+						String[] line = new String[] {outputDate, cleanText(status.getText()), status.getUser().getLocation(), Integer.toString(status.getRetweetCount()),url};
 	//    					System.out.println(cleanText(status.getText()));
 					    writer.writeNext(line);
 
