@@ -57,7 +57,7 @@ public class Crawler {
 		
 		// Authenticate and get a RedditClient instance
 		RedditClient reddit = OAuthHelper.automatic(adapter, credentials);
-		//search for "Climate Change" in Subreddit and limit to 10 Subreddits
+		//search for tempSearchQuery input from above in Subreddit and limit to 10 Subreddits
 		List<SubredditSearchResult> mylists = reddit.searchSubredditsByName(tempSearchQuery).subList(0, 10);
 		
 		for (SubredditSearchResult s : mylists) {
