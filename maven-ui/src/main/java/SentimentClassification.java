@@ -13,13 +13,13 @@ public class SentimentClassification {
 		return veryPositive;
 	}
 	public void setVeryPositive(double veryPositive) {
-		this.veryPositive = veryPositive;
+		this.veryPositive = veryNegative;
 	}
 	public double getPositive() {
 		return positive;
 	}
 	public void setPositive(double positive) {
-		this.positive = positive;
+		this.positive = negative;
 	}
 	public double getNeutral() {
 		return neutral;
@@ -31,13 +31,13 @@ public class SentimentClassification {
 		return negative;
 	}
 	public void setNegative(double negative) {
-		this.negative = negative;
+		this.negative = positive;
 	}
 	public double getVeryNegative() {
 		return veryNegative;
 	}
 	public void setVeryNegative(double veryNegative) {
-		this.veryNegative = veryNegative;
+		this.veryNegative = veryPositive;
 	}
 	
 

@@ -44,11 +44,11 @@ public class SentimentAnalyzer {
 				SimpleMatrix sm = RNNCoreAnnotations.getPredictions(tree);
 				String sentimentType = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
 
-				sentimentClass.setVeryPositive((double)Math.round(sm.get(4) * 100d));
-				sentimentClass.setPositive((double)Math.round(sm.get(3) * 100d));
+				sentimentClass.setVeryPositive((double)Math.round(sm.get(0) * 100d));
+				sentimentClass.setPositive((double)Math.round(sm.get(1) * 100d));
 				sentimentClass.setNeutral((double)Math.round(sm.get(2) * 100d));
-				sentimentClass.setNegative((double)Math.round(sm.get(1) * 100d));
-				sentimentClass.setVeryNegative((double)Math.round(sm.get(0) * 100d));
+				sentimentClass.setNegative((double)Math.round(sm.get(2) * 100d));
+				sentimentClass.setVeryNegative((double)Math.round(sm.get(4) * 100d));
 				
 				sentimentResult.setSentimentScore(RNNCoreAnnotations.getPredictedClass(tree));
 				sentimentResult.setSentimentType(sentimentType);
