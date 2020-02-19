@@ -36,17 +36,16 @@ public class search {
 		text = text.replace("\t", " ");
 		text = text.replace("…", "...");
 		text = text.replace("RT", "");
+		text = text.replace("\'", "");
 		
-
 		return text;
 	}
 	
 	public List searchForWord(String word) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException{
 			
 			//List that will be used to store the resulting tweets
-			List<String> tweets = new ArrayList();
-			int numOfTweets = 0, i;
-			String radUnit = "km";
+			List<String[]> tweets = new ArrayList();
+			int i, numOfTweets = 300;
 			
 			try {
 				ConfigurationBuilder cb = new ConfigurationBuilder();
@@ -84,7 +83,7 @@ public class search {
                 writer.writeNext(heading);
 				//Add resulting entries to the List that we will return
                 
-                for(i=0;i<3;i++)//there is more pages to load
+                for(i=0;i<=3;i++)//there is more pages to load
                 {
 	            	for(Status status: result.getTweets()){
 	            		DateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy");
@@ -95,19 +94,25 @@ public class search {
 	            	    String outputDate = outputFormat.format(date);
 	            		String url= "https://twitter.com/" + status.getUser().getScreenName() 
 	            			    + "/status/" + status.getId();
-						String[] line = new String[] {outputDate, cleanText(status.getText()), status.getUser().getLocation(), Integer.toString(status.getRetweetCount()),url};
+						String[] line = new String[] {cleanText(outputDate), cleanText(status.getText().replace("\"", "")), cleanText(status.getUser().getLocation()), Integer.toString(status.getRetweetCount()),url};
 	//    					System.out.println(cleanText(status.getText()));
+//						tweets.add(cleanText(outputDate));
+//						tweets.add(cleanText(status.getText()));
+//						tweets.add(cleanText(status.getUser().getLocation()));
+//						tweets.add(Integer.toString(status.getRetweetCount()));
+//						tweets.add(line);
 					    writer.writeNext(line);
 
 	            	}
 	            	if (result.nextQuery() == null) {
 	            		break;
 	            	}
-	            	else {
-		                query = result.nextQuery();
-		                result = twitter.search(query);
-	            	}
+	            	
+	                query = result.nextQuery();
+	                result = twitter.search(query);
                 }
+//                writer.writeAll(tweets);
+                writer.close();
 				
 			} catch (TwitterException te) {
 				//Print any error that may be associated with this code
@@ -117,6 +122,7 @@ public class search {
 			
 			//Return List with all the tweets found as part of the search
 			System.out.println(word+" Tweets Fetched");
+			
 			return tweets;
 		}
 	
