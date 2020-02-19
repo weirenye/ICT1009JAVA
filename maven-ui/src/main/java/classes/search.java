@@ -2,7 +2,7 @@ package classes;
 
 
 import java.io.FileOutputStream;
-
+import java.io.FileWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;  
 import java.util.Date;  
@@ -38,6 +38,7 @@ public class search {
 		text = text.replace("RT", "");
 		text = text.replace("\'", "");
 		text = text.replaceAll("[\ud83c\udf00-\ud83d\ude4f]|[\ud83d\ude80-\ud83d\udeff]", "");
+		text = text.replaceAll("@\\s*(\\w+)|[:]|#\\s*(\\w+)|https\\s*(\\w+)", "");
 		
 		return text;
 	}
@@ -45,8 +46,8 @@ public class search {
 	public List searchForWord(String word) throws IOException, CsvDataTypeMismatchException, CsvRequiredFieldEmptyException{
 			
 			//List that will be used to store the resulting tweets
-			List<String[]> tweets = new ArrayList();
-			int i, numOfTweets = 300;
+			List<String> tweets = new ArrayList();
+			int i;
 			
 			try {
 				ConfigurationBuilder cb = new ConfigurationBuilder();
@@ -70,10 +71,9 @@ public class search {
 				
 				//Execute the search method in the twitter object. The results are contained in a QueryResult object that contains one object Status per Tweet
 				QueryResult result = twitter.search(query);
-		        
-				String fileName = "./data_"+word+".csv";
 				
-				FileOutputStream fos = new FileOutputStream(fileName);
+				FileOutputStream fos = new FileOutputStream("./Dataset_Current/data_"+word+".csv");
+				FileWriter writerWordCloud = new FileWriter("./Dataset_txtFiles/wordcloud_"+word+".txt"); 
 				fos.write(239);
 			    fos.write(187);
 			    fos.write(191);
@@ -96,13 +96,8 @@ public class search {
 	            		String url= "https://twitter.com/" + status.getUser().getScreenName() 
 	            			    + "/status/" + status.getId();
 						String[] line = new String[] {cleanText(outputDate), cleanText(status.getText().replace("\"", "")), cleanText(status.getUser().getLocation()), Integer.toString(status.getRetweetCount()),url};
-	//    					System.out.println(cleanText(status.getText()));
-//						tweets.add(cleanText(outputDate));
-//						tweets.add(cleanText(status.getText()));
-//						tweets.add(cleanText(status.getUser().getLocation()));
-//						tweets.add(Integer.toString(status.getRetweetCount()));
-//						tweets.add(line);
-					    writer.writeNext(line);
+					    tweets.add(cleanText(status.getText().replace("\"", "")));
+						writer.writeNext(line);
 
 	            	}
 	            	if (result.nextQuery() == null) {
@@ -112,8 +107,11 @@ public class search {
 	                query = result.nextQuery();
 	                result = twitter.search(query);
                 }
-//                writer.writeAll(tweets);
+                for(String str: tweets) {
+                	writerWordCloud.write(str + System.lineSeparator());
+                }
                 writer.close();
+                writerWordCloud.close();
 				
 			} catch (TwitterException te) {
 				//Print any error that may be associated with this code
