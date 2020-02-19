@@ -37,6 +37,7 @@ public class search {
 		text = text.replace("…", "...");
 		text = text.replace("RT", "");
 		text = text.replace("\'", "");
+		text = text.replaceAll("[\ud83c\udf00-\ud83d\ude4f]|[\ud83d\ude80-\ud83d\udeff]", "");
 		
 		return text;
 	}
