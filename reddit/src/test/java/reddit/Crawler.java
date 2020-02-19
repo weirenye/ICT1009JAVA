@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.oauth.Credentials;
@@ -25,43 +26,56 @@ import net.dean.jraw.models.TimePeriod;
 public class Crawler {
 
 	public static void main(String[] args) throws IOException {
-
-		FileWriter csvWriter = new FileWriter("new.csv");
-		csvWriter.append("Upvotes");
+		//creating csv file and headers
+		FileWriter csvWriter = new FileWriter("reddit.csv");
+		csvWriter.append("NoOfComments");
+		csvWriter.append(",");
+		csvWriter.append("URL");
 		csvWriter.append(",");
 		csvWriter.append("Date");
+		csvWriter.append(",");
+		csvWriter.append("Upvotes");
+		csvWriter.append(",");
+		csvWriter.append("Title");
 		csvWriter.append(",");
 		csvWriter.append("Text");
 		csvWriter.append("\n");
 		
 	
 		UserAgent userAgent = new UserAgent("bot", "com.example.usefulbot", "v0.1", "mattbdean");
-		Credentials credentials = Credentials.script("tempcrawler", "temptemp",
-			    "LIwSbI8F6-1H5A", "dqglRyYhMd4S-bZA4mAnyQfl6_k");
+		Credentials credentials = Credentials.script("tempcrawler", "temptemp", "LIwSbI8F6-1H5A", "dqglRyYhMd4S-bZA4mAnyQfl6_k");
 		NetworkAdapter adapter = new OkHttpNetworkAdapter(userAgent);
-
+		
+		//temporary search
+		String tempSearchQuery;
+		Scanner sc = new Scanner(System.in);
+		System.out.print("Enter Search Query: ");
+		tempSearchQuery = sc.nextLine();
+		sc.close();
+		System.out.println("Search Query: " + tempSearchQuery);
+		
+		
 		// Authenticate and get a RedditClient instance
 		RedditClient reddit = OAuthHelper.automatic(adapter, credentials);
-		//Subreddit sr = reddit.subreddit("RocketLeague").about();
-		List<SubredditSearchResult> mylists = reddit.searchSubredditsByName("Climate change").subList(0, 4);
-		for (SubredditSearchResult s : mylists) {
-			//Subreddit sr = reddit.subreddit(s.getName()).about();
-			System.out.println(s.getName());
-
-			DefaultPaginator<Submission> paginator = reddit.subreddit(s.getName()).posts().sorting(SubredditSort.TOP).limit(3).build();
+		//search for "Climate Change" in Subreddit and limit to 10 Subreddits
+		List<SubredditSearchResult> mylists = reddit.searchSubredditsByName(tempSearchQuery).subList(0, 10);
 		
-			Listing<Submission> posts;
-			while((posts = paginator.next()) != null) {
-				for(Submission sub: posts) {
-					System.out.println(sub.getCreated());
-					System.out.println(sub.getScore());
-					System.out.println(sub.getSelfText());
-					String mys = sub.getCreated() + "," + sub.getScore() + "," + sub.getSelfText(); 
-					csvWriter.append(mys);
-				    csvWriter.append("\n");
-				}
-			}
+		for (SubredditSearchResult s : mylists) {
+			//limit it to top 3 search results for each subreddit
+			DefaultPaginator<Submission> paginator = reddit.subreddit(s.getName()).posts().sorting(SubredditSort.TOP).limit(3).build();
 			
+			//writing into csv file
+			Listing<Submission> posts;
+				for(Submission sub: posts = paginator.next()) {
+					String TextRemoveChar, TitleRemoveChar;
+					TextRemoveChar = sub.getSelfText();
+					TitleRemoveChar = sub.getTitle();
+					TextRemoveChar = TextRemoveChar.replace("\n", "").replace(",", "_");
+					TitleRemoveChar = TitleRemoveChar.replace("\n", "").replace(",", "_");
+					String mys = sub.getCommentCount() + "," + "https://www.reddit.com" + sub.getPermalink() + "," + sub.getCreated() + "," + sub.getScore() + "," + TitleRemoveChar + "," + TextRemoveChar; 
+					csvWriter.append(mys);
+					csvWriter.append("\n");
+				}
 		    
 		}
 		csvWriter.flush();
