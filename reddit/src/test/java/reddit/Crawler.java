@@ -51,8 +51,8 @@ public class Crawler {
 		//search for tempSearchQuery input from above in Subreddit and limit to 10 Subreddits
 		
 		int lastIndx = reddit.searchSubredditsByName(tempSearchQuery).size();
-		int currIndx = 10;
-		if (lastIndx < 10 )
+		int currIndx = 20;
+		if (lastIndx < 20 )
 		{
 			currIndx = lastIndx;
 		}
@@ -63,7 +63,7 @@ public class Crawler {
 		
 		for (SubredditSearchResult s : mylists) {
 			//limit it to top 3 search results for each subreddit
-			DefaultPaginator<Submission> paginator = reddit.subreddit(s.getName()).posts().sorting(SubredditSort.TOP).limit(3).build();
+			DefaultPaginator<Submission> paginator = reddit.subreddit(s.getName()).posts().sorting(SubredditSort.HOT).limit(6).build();
 			
 			//writing into csv file
 			Listing<Submission> posts;
