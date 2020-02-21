@@ -1,4 +1,6 @@
 import java.util.Scanner; 
+import java.util.Date;
+import java.text.SimpleDateFormat;  
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -33,9 +35,10 @@ public class cnaScraper {
 	
 	public static void getlinks(String searchlink, String filename) {
 		Elements links;
-		Elements nextPage;
+		Element nextPage;
 		String nextLink;
 		Elements er;
+		String nr;
 		
 		try {
 			
@@ -53,30 +56,35 @@ public class cnaScraper {
 			csv.println("Title=Date=Source=Link=Article");
 
 			int totalpages = Integer.parseInt(document.getElementsByClass("pagination__index-value").get(1).text()); 
+			
 			for(int i = 0; i<totalpages; i++ ) {
 				// get links from the results page
+				// start of the new current results page
 				Elements results = document.getElementsByClass("teaser__heading").not("teaser__category-container");
 				links = results.select("a[href]");
+				print("Page: "+ i);
+				int numResults = Integer.parseInt(document.getElementsByClass("result-section__index-value").get(0).text());
 				int counter = 0;
 				for (Element link : links) {
 					
 					String linkHref = link.attr("href");
 					String linkText = link.text();
 					linkHref = "https://www.channelnewsasia.com"+linkHref;
-					csv.println(linkText +"="+getDate(linkHref)+"="+getSource(linkHref)+"="+ linkHref+"=\""+ getArticle(linkHref)+ "\"");
-					
-					print(linkHref);
-					print(linkText);
-					
-					getArticle(linkHref);
+					if(!getDate(linkHref).isEmpty()){
+						csv.println(linkText +"="+getDate(linkHref)+"="+getSource(linkHref)+"="+ linkHref+"=\""+ getArticle(linkHref)+ "\"");
+						print(linkHref);
+						print(linkText);
+					}
 					counter++;
-					if (counter >= 10){break;}
+					if (counter >= numResults){break;}
 				}
 				
 				//select the link that goes to the next result page
-				nextPage = document.getElementsByClass("pagination__link is-next").not("section__cta");
+				//nextPage = document.getElementsByClass("pagination__link is-next").not("section__cta");
+				nextPage = document.getElementsByClass("pagination__link is-next").first();
 				nextLink = "https://www.channelnewsasia.com"+nextPage.attr("href");
 				document = Jsoup.connect(nextLink).get();
+				print(nextLink);
 			}
 
 		} catch (IOException e) {
@@ -84,18 +92,36 @@ public class cnaScraper {
 		}
 	}
 
-	public static String getDate(String linkHref) {
-		String Date = "";
+	public static String getDate(String linkHref){
+		String DatePublished = "";
+		String StoreDates[];
+		Date ads;
+		//12 Feb 2020 11:35PM
+		SimpleDateFormat dp =new SimpleDateFormat("dd MMM yyyy hh:mmaa");
+		SimpleDateFormat returnFormat =new SimpleDateFormat("dd/MM/yyy");
 		try {
 			Document articlelink = Jsoup.connect(linkHref).get();
 			Elements d = articlelink.getElementsByClass("article__details-item");
-			Date = d.text();
+			DatePublished = d.text();
+			
+			if (!DatePublished.isEmpty()) {
+				if (DatePublished.contains(" (Updated: ")){
+					print(DatePublished);
+					StoreDates = DatePublished.split(" \\(Updated\\: ");
+					DatePublished = StoreDates[1];
+					DatePublished = DatePublished.replace(")", "");
+				}
+				ads = dp.parse(DatePublished);
+				DatePublished = returnFormat.format(ads);
+			}
 			
 		}catch (IOException e) {
 			e.printStackTrace();
+		} catch (java.text.ParseException e) {
+			e.printStackTrace();
 		}
 		
-		return Date;
+		return DatePublished;
 	}
 	
 	public static String getSource(String linkHref) {
