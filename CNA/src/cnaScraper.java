@@ -1,11 +1,14 @@
 import java.util.Scanner; 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.Random;
+
 import java.text.SimpleDateFormat;  
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -13,8 +16,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import com.opencsv.CSVWriter;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
+
 
 public class cnaScraper{
 	public static Document document;
@@ -45,6 +47,8 @@ public class cnaScraper{
 		String nextLink;
 		Elements er;
 		String nr;
+		int numResults;
+		Random rand = new Random();
 		
 		try {
 			
@@ -70,8 +74,15 @@ public class cnaScraper{
 				// get links from the current results page
 				Elements results = document.getElementsByClass("teaser__heading").not("teaser__category-container");
 				links = results.select("a[href]");
+				if (!er.isEmpty()) {
+					print("Cant find links on page "+i);
+				}
 				print("Page: "+ i);
-				int numResults = Integer.parseInt(document.getElementsByClass("result-section__index-value").get(0).text());
+				if (i == totalpages -1) {
+					numResults = 10;
+				}else {
+					numResults = Integer.parseInt(document.getElementsByClass("result-section__index-value").first().text());
+				}
 				int counter = 0;
 				// for every link in the article, get article details and insert into CSV
 				for (Element link : links) {
@@ -79,11 +90,13 @@ public class cnaScraper{
 					String linkHref = link.attr("href");
 					String linkText = link.text();
 					linkHref = "https://www.channelnewsasia.com"+linkHref;
-					if(!getDate(linkHref).isEmpty()){
-						String[] line = new String[] {linkText, getDate(linkHref), getSource(linkHref), linkHref, getArticle(linkHref)};
+					Document articlelink = Jsoup.connect(linkHref).get();
+					if(!getDate(articlelink).isEmpty()){
+						TimeUnit.SECONDS.sleep(rand.nextInt(5));
+						String[] line = new String[] {linkText, getDate(articlelink), getSource(articlelink), linkHref, getArticle(articlelink)};
 						writer.writeNext(line);
-						print(linkHref);
 						print(linkText);
+						print(linkHref);
 					}
 					counter++;
 					if (counter >= numResults){break;}
@@ -91,17 +104,21 @@ public class cnaScraper{
 				
 				//select the link that goes to the next result page
 				nextPage = document.getElementsByClass("pagination__link is-next").first();
+				//nextPage = document.getElementsByClass("pagination__link is-next").not("section__cta");
 				nextLink = "https://www.channelnewsasia.com"+nextPage.attr("href");
+				TimeUnit.SECONDS.sleep(rand.nextInt(20));
 				document = Jsoup.connect(nextLink).get();
 				print(nextLink);
 			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
-	public static String getDate(String linkHref){
+	public static String getDate(Document articlelink){
 		String DatePublished = "";
 		String StoreDates[];
 		Date ads;
@@ -109,13 +126,11 @@ public class cnaScraper{
 		SimpleDateFormat dp =new SimpleDateFormat("dd MMM yyyy hh:mmaa");
 		SimpleDateFormat returnFormat =new SimpleDateFormat("dd/MM/yyy");
 		try {
-			Document articlelink = Jsoup.connect(linkHref).get();
 			Elements d = articlelink.getElementsByClass("article__details-item");
 			DatePublished = d.text();
 			
 			if (!DatePublished.isEmpty()) {
 				if (DatePublished.contains(" (Updated: ")){
-					print(DatePublished);
 					StoreDates = DatePublished.split(" \\(Updated\\: ");
 					DatePublished = StoreDates[1];
 					DatePublished = DatePublished.replace(")", "");
@@ -124,33 +139,29 @@ public class cnaScraper{
 				DatePublished = returnFormat.format(ads);
 			}
 			
-		}catch (IOException e) {
-			e.printStackTrace();
-		} catch (java.text.ParseException e) {
+		}catch (java.text.ParseException e) {
 			e.printStackTrace();
 		}
 		
 		return DatePublished;
 	}
 	
-	public static String getSource(String linkHref) {
+	public static String getSource(Document articlelink) {
 		String Source = "";
 		try {
-			Document articlelink = Jsoup.connect(linkHref).get();
 			Elements d = articlelink.getElementsByClass("article__source");
 			Source = d.text();
 			
-		}catch (IOException e) {
+		}catch (Exception e) {
 			e.printStackTrace();
 		}
 		Source = Source.replace("Source: ", "");
 		return Source;
 	}
 	
-	public static String getArticle(String linkHref) {
+	public static String getArticle(Document articlelink) {
 		String Article = "";
 		try {
-			Document articlelink = Jsoup.connect(linkHref).get();
 			Elements results = articlelink.getElementsByClass("c-rte--article");
 			Elements fresults = results.select("p");
 			
@@ -158,7 +169,7 @@ public class cnaScraper{
 				String para = pp.text();
 				Article = Article +" "+ para;
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return Article;
