@@ -1,0 +1,3 @@
+﻿  NewsCrawl.cpp
+C:\Users\User\source\repos\C++\NewsCrawl\NewsCrawl\NewsCrawl.cpp(362,35): warning C4018: '<': signed/unsigned mismatch
+  NewsCrawl.vcxproj -> C:\Users\User\source\repos\C++\NewsCrawl\Debug\NewsCrawl.exe
